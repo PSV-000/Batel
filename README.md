@@ -1,2 +1,2 @@
-# batel
+# Batel
 TCG Inventory Management
