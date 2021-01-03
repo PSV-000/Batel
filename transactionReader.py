@@ -7,7 +7,6 @@ skuDictionary = json.load(open("skuDictionary.txt"))
 skuDictionaryReverse = json.load(open("skuDictionaryReverse.txt"))
 
 sampleSet = {} # Sample transaction dictionary
-count = 0
 
 with open("sample_transactions.csv", newline = '') as sample:
     reader = csv.DictReader(sample)
@@ -16,10 +15,10 @@ with open("sample_transactions.csv", newline = '') as sample:
         new_date = row["Date"].strip()
 
         # Need to reformat to show year as YY instead of YYYY for datetime to properly read
-        convertDate = datetime.strptime(new_date[:len(new_date)-2], "%m/%d/%y")
+        convertDate = datetime.strptime(new_date, "%m/%d/%Y")
 
         # Need to reformat datetime object as a string to use as a key for dictionary
-        reformatted = convertDate.strftime("%d/%m/%Y")
+        reformatted = convertDate.strftime("%Y/%m/%d")
         temp["Type"] = row["Type"].strip()
 
         # Transaction type determines sign of price
@@ -36,7 +35,7 @@ with open("sample_transactions.csv", newline = '') as sample:
 
         # SKU pull
         for cards, prints in skuDictionary.items():
-            if temp["Name"] == cards:
+            if row["Card Name"].strip() == cards:
                 for sets, variants in prints.items():
                     if row["Set Name"].strip() == sets:
                         for editions, conditions in variants.items():
@@ -44,7 +43,6 @@ with open("sample_transactions.csv", newline = '') as sample:
                                 for condition, sku in conditions.items():
                                     if int(row["Condition"].strip()) == int(condition):
                                         temp["SKU"] = sku
-                                        count += 1
                                         break
                                     else:
                                         pass
@@ -62,7 +60,6 @@ with open("sample_transactions.csv", newline = '') as sample:
             sampleSet[reformatted] = [temp]
 
 pprint.pprint(sampleSet)
-print(count)
 
 # Sample return metrics
 MOIC = 0
@@ -71,4 +68,4 @@ for date, transactions in sampleSet.items():
         MOIC += ( transaction["Price"] * transaction["Quantity"] )
 print(MOIC)
 
-json.dump(sampleSet, open("sample.txt", 'w'))
+json.dump(sampleSet, open("sample_transactions.txt", 'w'))
