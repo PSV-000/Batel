@@ -10,34 +10,41 @@ transactionDictionary = {} # Date : [ Array of BUY/TRADE/SELL transactions ]
 sampleTrades = [] # Temporary storage of trades
 uniqueTrades = [] # Counts batches of trades
 
-with open("sample_transactions.csv", newline = '') as sample:
-    reader = csv.DictReader(sample)
-    for row in reader:
-        temp = {}
-        new_date = row["Date"].strip()
-
+with open("sample_transactions.csv", newline='') as transactionInput:
+    transReader = csv.DictReader(transactionInput)
+    for row in transReader:
+        transType = row["Type"].strip()
+        transName = row["Card Name"].strip()
+        transSet = row["Set Name"].strip()
+        transID = row["Trade ID"].strip()
+        transPrice = float(row["Price"].strip())
+        transQuantity = int(row["Quantity"].strip())
+        transEdition = int(row["Edition"].strip())
+        transCondition = int(row["Condition"].strip())
+        transDate = row["Date"].strip()
         # Reformat datetime object as a string for dictionary key, year comes first to properly sort ascending
-        reverseDate = datetime.strptime(new_date, "%m/%d/%Y")
+        reverseDate = datetime.strptime(transDate, "%m/%d/%Y")
         reformattedDate = reverseDate.strftime("%Y/%m/%d")
 
         # Temporarily store trade information
-        if row["Type"].strip() == "TRADEIN" or row["Type"].strip() == "TRADEOUT":
-            if row["Trade ID"].strip() not in uniqueTrades:
-                uniqueTrades.append(row["Trade ID"].strip())
-            if row["Card Name"] == cashConstant or row["Card Name"] == "CASH":
-                tradeStore = [row["Trade ID"].strip(), row["Type"].strip(), row["Price"].strip(), cashConstant, reformattedDate]
+        temp = {}
+        if transType == "TRADEIN" or transType == "TRADEOUT":
+            if transID not in uniqueTrades:
+                uniqueTrades.append(transID)
+            if transName == cashConstant or transName == "CASH":
+                tradeStore = [transID, transType, transPrice, cashConstant, reformattedDate]
             else:
-                tradeStore = [row["Trade ID"].strip(), row["Type"].strip(), reformattedDate, row["Price"].strip(), row["Quantity"].strip(), row["Card Name"].strip()]
+                tradeStore = [transID, transType, reformattedDate, transPrice, transQuantity, transName]
 
                 # SKU pull for TRADES
                 for cards, prints in skuDictionary.items():
-                    if row["Card Name"].strip() == cards:
+                    if transName == cards:
                         for sets, variants in prints.items():
-                            if row["Set Name"].strip() == sets:
+                            if transSet == sets:
                                 for editions, conditions in variants.items():
-                                    if int(row["Edition"].strip()) == int(editions):
+                                    if transEdition == int(editions):
                                         for condition, sku in conditions.items():
-                                            if int(row["Condition"].strip()) == int(condition):
+                                            if transCondition == int(condition):
                                                 tradeStore.append(sku)
                                                 break
                                             else:
@@ -52,27 +59,27 @@ with open("sample_transactions.csv", newline = '') as sample:
             continue
 
         # Transaction type (Buy/Sell) determines sign of price
-        temp["Type"] = row["Type"].strip()
+        temp["Type"] = transType
         if temp["Type"] == "BUY":
-            temp["Price"] = -abs(float(row["Price"].strip()))
+            temp["Price"] = -abs(transPrice)
         elif temp["Type"] == "SELL":
-            temp["Price"] = abs(float(row["Price"].strip()))
+            temp["Price"] = abs(transPrice)
         else:
             temp["Price"] = None
 
         # No fractional shares of cards allowed, for quantity
-        temp["Quantity"] = int(row["Quantity"].strip())
-        temp["Name"] = row["Card Name"].strip()
+        temp["Quantity"] = int(transQuantity)
+        temp["Name"] = transName
 
         # SKU pull for BUY/SELL
         for cards, prints in skuDictionary.items():
-            if row["Card Name"].strip() == cards:
+            if transName == cards:
                 for sets, variants in prints.items():
-                    if row["Set Name"].strip() == sets:
+                    if transSet == sets:
                         for editions, conditions in variants.items():
-                            if int(row["Edition"].strip()) == int(editions):
+                            if transEdition == int(editions):
                                 for condition, sku in conditions.items():
-                                    if int(row["Condition"].strip()) == int(condition):
+                                    if transCondition == int(condition):
                                         temp["SKU"] = sku
                                         break
                                     else:
@@ -85,7 +92,7 @@ with open("sample_transactions.csv", newline = '') as sample:
                 continue
         try:
             transactionDictionary[reformattedDate].append(temp)
-        except:
+        except KeyError:
             transactionDictionary[reformattedDate] = [temp]
 
 # Append trade information
@@ -102,26 +109,26 @@ for unique in uniqueTrades:
             if trade[1] == "TRADEIN":
                 tempSet = {}
                 if trade[3] == cashConstant:
-                    tempSet["Price"] = float(trade[2])
+                    tempSet["Price"] = trade[2]
                     tempSet["Quantity"] = 1
                     tempSet["SKU"] = cashConstant
                     tempSet["Date"] = trade[4]
                 else:
-                    tempSet["Price"] = float(trade[3])
-                    tempSet["Quantity"] = int(trade[4])
+                    tempSet["Price"] = trade[3]
+                    tempSet["Quantity"] = trade[4]
                     tempSet["Name"] = trade[5]
                     tempSet["SKU"] = trade[6]
                 tempTradesIn.append(tempSet)
             elif trade[1] == "TRADEOUT":
                 tempSet = {}
                 if trade[3] == cashConstant:
-                    tempSet["Price"] = -float(trade[2])
+                    tempSet["Price"] = -trade[2]
                     tempSet["Quantity"] = 1
                     tempSet["SKU"] = cashConstant
                     tempSet["Date"] = trade[4]
                 else:
-                    tempSet["Price"] = float(trade[3])
-                    tempSet["Quantity"] = int(trade[4])
+                    tempSet["Price"] = trade[3]
+                    tempSet["Quantity"] = trade[4]
                     tempSet["Name"] = trade[5]
                     tempSet["SKU"] = trade[6]
                 tempTradesOut.append(tempSet)
@@ -131,7 +138,7 @@ for unique in uniqueTrades:
 
     try:
         transactionDictionary[tradeDate].append(tempSemi)
-    except:
+    except KeyError:
         transactionDictionary[tradeDate] = [tempSemi]
 
 transactionSort(transactionDictionary) # Sorted for parse order: (1) Buy, (2) Trade, (3) Sell

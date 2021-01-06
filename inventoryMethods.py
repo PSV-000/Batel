@@ -33,6 +33,42 @@ def totalProductBasis(costDictionary):
             basis += costDictionary[key]
     return basis * costDictionary["Quantity"]
 
+def aggregatePriceDates(costDictionary):
+    # Extracts {Date : Price} dictionary items and scale to quantity
+    aggregates = {}
+    #tempQuantity = 0
+    for key in sorted(costDictionary.keys()):
+        if key in nonPriceKeys:
+            continue
+        else:
+            try:
+                aggregates[key] += costDictionary[key]
+            except KeyError:
+                aggregates[key] = costDictionary[key]
+        try:
+            aggregates[key] = aggregates[key] * costDictionary["Quantity"] #tempQuantity
+        except KeyError:
+            pass
+    return aggregates
+
+def joinPrice(firstDictionary, secondDictionary):
+    # Binds {Date : Price} dictionary items together
+    first = aggregatePriceDates(firstDictionary)
+    second = aggregatePriceDates(secondDictionary)
+    for key in sorted(second.keys()):
+        try:
+            first[key] += second[key]
+        except KeyError:
+            first[key] = second[key]
+    return first
+
+def arrayPriceDates(salesArray):
+    # Behaves as aggregatePriceDates for array of cost dictionaries
+    total = {}
+    for sale in salesArray:
+        total = joinPrice(total, sale)
+    return total
+
 def totalQuantity(pricingArray):
     quantityCount = 0
     for unit in pricingArray:
@@ -53,7 +89,8 @@ def averageCost(pricingArray):
         return totalCost/totalQuantity(pricingArray)
 
 def profitOrLoss(saleDictionary):
-    MOIC = averageCost(saleDictionary["Sale"]) + averageCost(saleDictionary["Cost"]) # Add because average costs are negative
+    # Move to venture economics
+    MOIC = averageCost(saleDictionary["Sale"]) + averageCost(saleDictionary["Cost"]) # Adding because costs are negative
     try:
         return saleDictionary["Sale"][0]["Quantity"] * MOIC # Items are sold at one price, can use average unit price
     except TypeError:
@@ -87,9 +124,10 @@ def processTrade(tradeDictionary, inventory, orderBoolean, sales):
         newIndex = 0
         # Isolated cash: outgoing cash will blend in with total cost, without need for additional differentiation
         if tradesOut["SKU"] == cashConstant:
-            tempCashOut = {}
-            tempCashOut[tradesOut["Date"]] = tradesOut["Price"]
-            tempCashOut["Quantity"] = 1
+            tempCashOut = {
+                tradesOut["Date"]: tradesOut["Price"],
+                "Quantity": 1
+                }
             realPrices.append(deepcopy(tempCashOut))
             newAppends.append(deepcopy(tempCashOut))
             costIndex += 1
@@ -102,22 +140,23 @@ def processTrade(tradeDictionary, inventory, orderBoolean, sales):
                         orderBoolean = False # Filler action - should search inventory for items to move to sales
                     else:
                         # Move items from inventory to temporary trade array
-                        realPrices.append(deepcopy(inv)) # Require deep copy to not overwrite inventory quantity
-                        newAppends.append(deepcopy(inv))
-                        realPrices[costIndex]["Quantity"] = min(inv["Quantity"], tradesOut["Quantity"])
-                        newAppends[newIndex]["Quantity"] = min(inv["Quantity"], tradesOut["Quantity"])
+                        inventoryClone = deepcopy(inv) # Require deep copy to not overwrite inventory quantity
+                        realPrices.append(inventoryClone)
+                        newAppends.append(inventoryClone)
+                        incrementalRemoved = min(inventoryClone["Quantity"], tradesOut["Quantity"] - removeCount)
+                        realPrices[costIndex]["Quantity"] = incrementalRemoved
+                        newAppends[newIndex]["Quantity"] = incrementalRemoved
                         costIndex += 1
                         newIndex += 1
 
                         # Remove traded items from inventory
-                        incrementalRemoved = min(inv["Quantity"], tradesOut["Quantity"] - removeCount)
                         removeCount += incrementalRemoved
                         if incrementalRemoved >= inv["Quantity"]:
                             inventory[int(tradesOut["SKU"])].pop(0)
                             if inventory[int(tradesOut["SKU"])] == []:
-                                inventory.pop(int(tradesOut["SKU"]), None) # Remove unavailable items - "Active Inventory"
+                                inventory.pop(int(tradesOut["SKU"]), None) # Maintain "Active Inventory"
                         else:
-                            inv["Quantity"] -= incrementalRemoved # Reduce inventory quantity if available items remain
+                            inv["Quantity"] -= incrementalRemoved # Reduce inventory quantity
             tempSalesDictionary[tradesOut["SKU"]] = newAppends
 
     # Calculate the pass-through cost of incoming trades (i.e. the "real" cost of the trade)
@@ -150,9 +189,10 @@ def processTrade(tradeDictionary, inventory, orderBoolean, sales):
             if tradesIn["SKU"] == cashConstant:
                 continue
             else:
-                tempTradesIn = {}
-                tempTradesIn[cashDate] = 0
-                tempTradesIn["Quantity"] = tradesIn["Quantity"]
+                tempTradesIn = {
+                    cashDate: 0,
+                    "Quantity": tradesIn["Quantity"]
+                    }
                 try:
                     inventory[int(tradesIn["SKU"])].append(tempTradesIn)
                 except:
@@ -160,16 +200,22 @@ def processTrade(tradeDictionary, inventory, orderBoolean, sales):
         # Move all outgoing inventory to sales
         totalResolvedBasis = 0
         for resolvedBasis in tempSalesDictionary.keys():
-            totalResolvedBasis += averageCost(tempSalesDictionary[resolvedBasis]) * totalQuantity(tempSalesDictionary[resolvedBasis])
+            avgCost = averageCost(tempSalesDictionary[resolvedBasis])
+            totalCards = totalQuantity(tempSalesDictionary[resolvedBasis])
+            totalResolvedBasis += avgCost * totalCards
         # Distribute the sales proceeds by each card's pro-rata share in the cost
         for resolvedBasis in tempSalesDictionary.keys():
-            tempSaleShell = {}
-            tempSaleShell["Cost"] = tempSalesDictionary[resolvedBasis]
-            tempSaleDetail = {}
-            tempSaleDetail[cashDate] = (averageCost(tempSalesDictionary[resolvedBasis]) * totalQuantity(tempSalesDictionary[resolvedBasis]))/totalResolvedBasis * cashInflow
-            tempSaleDetail["Quantity"] = totalQuantity(tempSalesDictionary[resolvedBasis])
-            tempSaleShell["Sale"] = [tempSaleDetail]
-            tempSaleShell["SKU"] = resolvedBasis
+            avgCost = averageCost(tempSalesDictionary[resolvedBasis])
+            totalCards = totalQuantity(tempSalesDictionary[resolvedBasis])
+            tempSaleDetail = {
+                cashDate: (avgCost * totalCards)/totalResolvedBasis * cashInflow,
+                "Quantity": totalCards
+                }
+            tempSaleShell = {
+                "Cost": tempSalesDictionary[resolvedBasis],
+                "Sale": [tempSaleDetail],
+                "SKU": resolvedBasis
+                }
             sales.append(tempSaleShell)
     else:
         # Adjust total basis by cash inflow amount
@@ -184,15 +230,14 @@ def processTrade(tradeDictionary, inventory, orderBoolean, sales):
             if tradesIn["SKU"] == cashConstant:
                 continue
             else:
-                tempInput = {}
-                tempInput["Quantity"] = tradesIn["Quantity"]
+                tempInput = {"Quantity": tradesIn["Quantity"]}
                 for priceDates in realTotalBasis.keys():
+                    basisClone = deepcopy(realTotalBasis[priceDates])
                     try:
-                        tempInput[priceDates] += (tradesIn["Price"] / nominalBasis * deepcopy(realTotalBasis[priceDates]))
+                        tempInput[priceDates] += (tradesIn["Price"] / nominalBasis * basisClone)
                     except:
-                        tempInput[priceDates] = (tradesIn["Price"] / nominalBasis * deepcopy(realTotalBasis[priceDates]))
+                        tempInput[priceDates] = (tradesIn["Price"] / nominalBasis * basisClone)
                 try:
                     inventory[int(tradesIn["SKU"])].append(tempInput)
                 except:
                     inventory[int(tradesIn["SKU"])] = [tempInput]
-

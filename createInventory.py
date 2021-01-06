@@ -18,13 +18,10 @@ LIFO = not FIFO
 
 # Inventory creation - parse through all transactions
 for key in sorted(transactions.keys()): # Sorted keys matter here because inventory creation follows strict sequence
-    #convertDate = datetime.strptime(key, "%Y/%m/%d")
     for transaction in transactions[key]:
         if transaction["Type"] == "BUY":
             # Add item to inventory
-            basis = {}
-            basis[key] = transaction["Price"]
-            basis["Quantity"] = transaction["Quantity"]
+            basis = {key: transaction["Price"], "Quantity": transaction["Quantity"]}
             try:
                 if FIFO:
                     inventory[transaction["SKU"]].append(basis)
@@ -41,63 +38,47 @@ for key in sorted(transactions.keys()): # Sorted keys matter here because invent
                 removeCount = 0
 
                 # Cost detail for sales array
-                tempDetailSKU = {}
-                tempDetailSKU["Cost"] = []
+                tempDetailSKU = {"Cost": []}
 
                 while removeCount < transaction["Quantity"]:
                     # Move items from inventory to sales array
-                    tempDetailSKU["Cost"].append(deepcopy(inventory[transaction["SKU"]][0]))
-                    tempDetailSKU["Cost"][costIndex]["Quantity"] = min(inventory[transaction["SKU"]][0]["Quantity"], transaction["Quantity"])
+                    inventoryClone = deepcopy(inventory[transaction["SKU"]][0])
+                    tempDetailSKU["Cost"].append(inventoryClone)
+                    incrementalRemoved = min(inventoryClone["Quantity"], transaction["Quantity"] - removeCount)
+                    tempDetailSKU["Cost"][costIndex]["Quantity"] = deepcopy(incrementalRemoved)
                     costIndex += 1
 
                     # Remove sold items from inventory
-                    incrementalRemoved = min(inventory[transaction["SKU"]][0]["Quantity"], transaction["Quantity"] - removeCount)
                     removeCount += incrementalRemoved
                     if incrementalRemoved >= inventory[transaction["SKU"]][0]["Quantity"]:
                         inventory[transaction["SKU"]].pop(0)
                         if inventory[transaction["SKU"]] == []:
-                            inventory.pop(transaction["SKU"], None) # Clear dead items from inventory - "Active Inventory"
+                            inventory.pop(transaction["SKU"], None) # Maintain "Active Inventory"
                     else:
-                        inventory[transaction["SKU"]][0]["Quantity"] -= incrementalRemoved
+                        inventory[transaction["SKU"]][0]["Quantity"] -= incrementalRemoved # Reduce inventory quantity
 
-                # Sales detail for sales array
-                tempSaleDetail = {}
-                tempSaleDetail[key] = transaction["Price"]
-                tempSaleDetail["Quantity"] = transaction["Quantity"]
+                # Sale detail for sales array
+                tempSaleDetail = {
+                    key: transaction["Price"],
+                    "Quantity": transaction["Quantity"]
+                    }
                 tempDetailSKU["Sale"] = [tempSaleDetail]
                 tempDetailSKU["SKU"] = transaction["SKU"]
                 sales.append(tempDetailSKU)
 
-            # Add subtype/subcategory for presale
+            # Add subtype/subcategory for presale, or create separate - presales do not work with IRR calculations
         elif transaction["Type"] == "TRADE":
             processTrade(transaction, inventory, specified_order, sales)
         else:
             print("Not a valid transaction")
 
+# Testing
 print("Transactions=====================================")
 pprint.pprint(transactions)
 print("Inventory=====================================")
 pprint.pprint(inventory)
 print("Sales=====================================")
 pprint.pprint(sales)
-json.dump(inventory, open("sample_inventory.txt", 'w'))
-json.dump(sales, open("sample_sales.txt", 'w'))
 
-'''avgCost = []
-for sku, prices in inventory.items():
-    avgCost.append(averageCost(prices))
-print("Inventory Average Cost=====================================")
-pprint.pprint(avgCost)'''
-
-# MOIC functions properly
-piFin = []
-piFinCount = 0
-saleCount = 0
-for salesDetail in sales:
-    piFin.append(profitOrLoss(salesDetail))
-    piFinCount += profitOrLoss(salesDetail)
-    saleCount += 1
-print("Sales Plus (MOIC)=====================================")
-pprint.pprint(piFin)
-print(piFinCount)
-print(saleCount)
+json.dump(inventory, open("inventory.txt", 'w'))
+json.dump(sales, open("sales.txt", 'w'))
