@@ -5,47 +5,170 @@
     <title>Batel</title>
     <meta charset="utf-8">
     <meta name="keywords" content="inventory">
-    <style>
-        h1 {
-            color : silver
-        }
-        p {
-            color : darkblue
-        }
-    </style>
-    <script src="sample_js.js"></script>
+    <!--Sample Styling: Separate CSS Required Eventually-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sample_css.css">
+    <!--Sample Javascript-->
+    <script src="js/sample_js.js"></script>
 </head>
 <body>
-    <h1>Batel Inventory</h1>
-    <p>Do not click</p>
-    <button onclick="revealMessage()">Powell Printer</button>
-    <p id="hiddenMessage" style="display:none">brrrrrrrrrrrrrrrrrrr</p>
-    
-    <br>
-    <!--<code>console.log(Welcome to Batel.);</code>-->
-    <script>console.log("Welcome to Batel.");</script>
-    <br>
-    <a href="https://www.batelinventory.com">batelinventory.com</a>
-    <br>
-    <img src="jar.jpg" alt="Jar">
-    <a href="https://www.batelinventory.com"><img src="jar.jpg" alt="Jar"></a>
-    <img src="jar.jpg" alt="Jar">
+    <header>
+        <h1>Batel Inventory</h1>
+        <h2>バテルへようこそ</h2>
+    </header>
+    <!--Image Hyperlink Test-->
+    <img src="img/sb_secrets.jpg" width="300" alt="spellbook-secrets">
+    <a href="https://www.batelinventory.com"><img src="img/batel.png" width="300" alt="batel"></a>
+    <img src="img/sb_secrets.jpg" width="300" alt="spellbook-secrets">
+    <!--Functionality Test-->
     <div>
+        <!--Sample Transactions-->
         <div>
-            <p class="transaction">BUY</p>
-            <p class="transaction">SELL</p>
-            <p class="transaction">TRADEIN</p>
+            <ul>
+                <li class="transaction">BUY</li>
+                <li class="transaction">SELL</li>
+                <li class="transaction">TRADEIN</li>
+                <li class="transaction">TRADEOUT</li>
+            </ul>
+            <!--Transaction Input-->
+            <form action="https://www.batelinventory.com/transactionProcessing" method="post">
+                <div class="tableBlock">
+                    <table>
+                        <tr>
+                            <th>Card Name</th>
+                            <th>Set Name</th>
+                            <!--<th>Rarity</th>-->
+                            <th>Edition</th>
+                            <th>Condition</th>
+                            <th>Basis Price</th>
+                            <th>Quantity</th>
+                            <th>Transaction Type</th>
+                        </tr>
+                        <tr>
+                            <td><input name="cardName" type="text"></td>
+                            <td><input name="setName" type="text"></td>
+                            <!--<td><input name="rarity" type="text"></td>-->
+                            <td><input name="edition" type="text"></td>
+                            <td><input name="condition" type="text"></td>
+                            <td><input name="price" type="text"></td>
+                            <td><input name="quantity" type="text"></td>
+                            <td>
+                                <label for="buy">BUY</label>
+                                <input name="type" type="radio">
+                                <label for="sell">SELL</label>
+                                <input name="type" type="radio">
+                                <label for="tradein">TRADE <span>IN</span></label>
+                                <input name="type" type="radio">
+                                <label for="tradeout">TRADE <span>OUT</span></label>
+                                <input name="type" type="radio">
+                            </td>
+                        </tr>
+                    </table>
+                    <button onclick="addRow()">Add Row</button>
+                    <br>
+                    <input type="submit">
+                </div>
+                <div>
+                    <hr>
+                    <button onclick="downloadCSV()">Download CSV Input Form</button>
+                    <br>
+                    <button onclick="processCSV()">Upload CSV Batch</button>
+                </div>
+            </form>
         </div>
+        <!--Sample Inventory-->
         <div>
-            <p class="transaction">TRADEOUT</p>
-            <p class="inventory">SKU</p>
-            <p class="inventory">Price</p>
+            <ul>
+                <li class="inventory">SKU</li>
+                <li class="inventory">Price</li>
+                <li class="inventory">Quantity</li>
+            </ul>
+            <div class="tableBlock">
+                <table>
+                    <tr>
+                        <th>Card Name</th>
+                        <th>Set Name</th>
+                        <th>Rarity</th>
+                        <th>Edition</th>
+                        <th>Condition</th>
+                        <th>Basis Price</th>
+                        <th>Quantity</th>
+                    </tr>
+                    <tr>
+                        <td>Spellbook Magician of Prophecy</td>
+                        <td>Return of the Duelist</td>
+                        <td>Ultimate Rare</td>
+                        <td>1st</td>
+                        <td>Near Mint</td>
+                        <td>50.00</td>
+                        <td>6</td>                
+                    </tr>
+                    <tr>
+                        <td>Spellbook of Secrets</td>
+                        <td>Return of the Duelist</td>
+                        <td>Ultimate Rare</td>
+                        <td>1st</td>
+                        <td>Near Mint</td>
+                        <td>30.00</td>
+                        <td>3</td>                
+                    </tr>
+                </table>
+            </div>
+        <!--Sample Sales-->
         </div>
-        <div>
-            <p class="inventory">Quantity</p>
-        <p class="sale">Cost</p>
-        <p class="sale">Sale</p>
+        <ul>
+            <li class="sale">Cost</li>
+            <li class="sale">Sale</li>
+        </ul>
+        <form>
+            <select>
+                <option>All Transactions</option>
+                <option>Only Sold</option>
+            </select>
+        </form>
+        <div class="tableBlock">
+            <table>
+                <tr>
+                    <th>Card Name</th>
+                    <th>Set Name</th>
+                    <th>Rarity</th>
+                    <th>Edition</th>
+                    <th>Condition</th>
+                    <th>Basis Price</th>
+                    <th>Sale Price</th>
+                    <th>Quantity</th>
+                    <th>MOIC</th>
+                    <th>MOIC %</th>
+                    <th>IRR</th>
+                </tr>
+                <tr>
+                    <td>Spellbook of Secrets</td>
+                    <td>Return of the Duelist</td>
+                    <td>Ultimate Rare</td>
+                    <td>1st</td>
+                    <td>Near Mint</td>
+                    <td>30.00</td>
+                    <td>35.00</td>
+                    <td>3</td>
+                    <td>15</td>
+                    <td>16.67%</td>
+                    <td>33.33%</td>
+                </tr>
+            </table>
         </div>
+    </div>
+    <div>
+        <!--Javascript Button Test-->
+        <p>Do not click</p>
+        <button onclick="revealMessage()">Powell Printer</button>
+        <p id="hiddenMessage">brrrrrrrrrrrrrrrrrrr</p>
+        <br>
+        <!--<code>console.log(Welcome to Batel.);</code>-->
+        <script>console.log("Welcome to Batel.");</script>
+        <br>
+        <a href="https://www.batelinventory.com" target="_blank">batelinventory.com</a>
+        <br>
     </div>
 <body>
 </html>
