@@ -18,10 +18,15 @@ with open("sample_transactions.csv", newline='') as transactionInput:
         transSet = row["Set Name"].strip()
         transID = row["Trade ID"].strip()
         transPrice = float(row["Price"].strip())
-        transQuantity = int(row["Quantity"].strip())
-        transEdition = int(row["Edition"].strip())
-        transCondition = int(row["Condition"].strip())
         transDate = row["Date"].strip()
+        try:
+            transQuantity = int(row["Quantity"].strip())
+            transEdition = int(row["Edition"].strip())
+            transCondition = int(row["Condition"].strip())
+        except ValueError:
+            # Processing cash-only line items
+            pass
+
         # Reformat datetime object as a string for dictionary key, year comes first to properly sort ascending
         reverseDate = datetime.strptime(transDate, "%m/%d/%Y")
         reformattedDate = reverseDate.strftime("%Y/%m/%d")
