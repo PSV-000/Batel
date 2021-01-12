@@ -9,6 +9,13 @@ h2 {
     color: rgba(175, 175, 175, 0.9);
     text-align: right;
 }
+button, #transactionSubmit, #returnOptions {
+    background:rgba(255, 250, 225, 0.85);
+    border-radius: 20px;
+    border-width: 1px;
+    box-shadow: none;
+    font-family: 'Open Sans', sans-serif;
+}
 /* 
 tr {
     background: rgb(246, 160, 232, 0.5);
@@ -17,13 +24,13 @@ tr {
 }
 */
 .tableBlock {
-    background: rgba(255, 160, 230, 0.5);
+    background: rgba(255, 160, 230, 0.75);
     border: 1px solid rgba(255, 50, 255, 0.75);
     border-radius: 20px;
 }
 .tableBlock:hover {
     /* Light-Up Effect */
-    background: rgba(255, 160, 232, 1);
+    background: rgba(255, 160, 230, 1);
     border: 1px solid rgba(255, 50, 255, 1);
 }
 #hiddenMessage {

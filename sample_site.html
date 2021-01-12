@@ -9,8 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/sample_css.css">
-    <!--Sample Javascript-->
-    <script src="js/sample_js.js"></script>
 </head>
 <body>
     <header>
@@ -24,6 +22,8 @@
     <!--Functionality Test-->
     <div>
         <!--Sample Transactions-->
+        <h3>Transactions</h3>
+        <hr>
         <div>
             <ul>
                 <li class="transaction">BUY</li>
@@ -35,42 +35,17 @@
             <form action="https://www.batelinventory.com/transactionProcessing" method="post">
                 <div class="tableBlock">
                     <table>
-                        <tr>
-                            <th>Card Name</th>
-                            <th>Set Name</th>
-                            <!--<th>Rarity</th>-->
-                            <th>Edition</th>
-                            <th>Condition</th>
-                            <th>Basis Price</th>
-                            <th>Quantity</th>
-                            <th>Transaction Type</th>
-                        </tr>
-                        <tr>
-                            <td><input name="cardName" type="text"></td>
-                            <td><input name="setName" type="text"></td>
-                            <!--<td><input name="rarity" type="text"></td>-->
-                            <td><input name="edition" type="text"></td>
-                            <td><input name="condition" type="text"></td>
-                            <td><input name="price" type="text"></td>
-                            <td><input name="quantity" type="text"></td>
-                            <td>
-                                <label for="buy">BUY</label>
-                                <input name="type" type="radio">
-                                <label for="sell">SELL</label>
-                                <input name="type" type="radio">
-                                <label for="tradein">TRADE <span>IN</span></label>
-                                <input name="type" type="radio">
-                                <label for="tradeout">TRADE <span>OUT</span></label>
-                                <input name="type" type="radio">
-                            </td>
-                        </tr>
+                        <tr id="transactionHeader"></tr>
+                        <tr id="transactionInput"></tr>
                     </table>
                     <button onclick="addRow()">Add Row</button>
                     <br>
-                    <input type="submit">
+                    <input id="transactionSubmit" onclick="addTransaction()" type="submit">
+                    <br>
+                    <br>
                 </div>
                 <div>
-                    <hr>
+                    <br>
                     <button onclick="downloadCSV()">Download CSV Input Form</button>
                     <br>
                     <button onclick="processCSV()">Upload CSV Batch</button>
@@ -78,6 +53,8 @@
             </form>
         </div>
         <!--Sample Inventory-->
+        <h3>Inventory</h3>
+        <hr>
         <div>
             <ul>
                 <li class="inventory">SKU</li>
@@ -86,15 +63,7 @@
             </ul>
             <div class="tableBlock">
                 <table>
-                    <tr>
-                        <th>Card Name</th>
-                        <th>Set Name</th>
-                        <th>Rarity</th>
-                        <th>Edition</th>
-                        <th>Condition</th>
-                        <th>Basis Price</th>
-                        <th>Quantity</th>
-                    </tr>
+                    <tr id="inventoryHeader"></tr>
                     <tr>
                         <td>Spellbook Magician of Prophecy</td>
                         <td>Return of the Duelist</td>
@@ -116,32 +85,22 @@
                 </table>
             </div>
         <!--Sample Sales-->
+        <h3>Sales</h3>
+        <hr>
         </div>
         <ul>
             <li class="sale">Cost</li>
             <li class="sale">Sale</li>
         </ul>
         <form>
-            <select>
+            <select id="returnOptions">
                 <option>All Transactions</option>
                 <option>Only Sold</option>
             </select>
         </form>
         <div class="tableBlock">
             <table>
-                <tr>
-                    <th>Card Name</th>
-                    <th>Set Name</th>
-                    <th>Rarity</th>
-                    <th>Edition</th>
-                    <th>Condition</th>
-                    <th>Basis Price</th>
-                    <th>Sale Price</th>
-                    <th>Quantity</th>
-                    <th>MOIC</th>
-                    <th>MOIC %</th>
-                    <th>IRR</th>
-                </tr>
+                <tr id="saleHeader"></tr>
                 <tr>
                     <td>Spellbook of Secrets</td>
                     <td>Return of the Duelist</td>
@@ -164,11 +123,12 @@
         <button onclick="revealMessage()">Powell Printer</button>
         <p id="hiddenMessage">brrrrrrrrrrrrrrrrrrr</p>
         <br>
-        <!--<code>console.log(Welcome to Batel.);</code>-->
         <script>console.log("Welcome to Batel.");</script>
         <br>
         <a href="https://www.batelinventory.com" target="_blank">batelinventory.com</a>
         <br>
     </div>
+    <!--Sample Javascript-->
+    <script src="js/sample_js.js"></script>
 <body>
 </html>
